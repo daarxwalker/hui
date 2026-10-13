@@ -1,7 +1,7 @@
 {
   "name": "@daarxwalker/headlessui-alpine",
   "version": "0.1.0",
-  "description": "Alpine.js plugins behind the headlessui templ components.",
+  "description": "Alpine.js plugins behind the hui templ components.",
   "keywords": [
     "alpinejs",
     "alpine-plugin",
@@ -12,11 +12,11 @@
   ],
   "license": "MIT",
   "author": "daarxwalker",
-  "homepage": "https://github.com/daarxwalker/headlessui/tree/main/alpine#readme",
-  "bugs": "https://github.com/daarxwalker/headlessui/issues",
+  "homepage": "https://github.com/daarxwalker/hui/tree/main/alpine#readme",
+  "bugs": "https://github.com/daarxwalker/hui/issues",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/daarxwalker/headlessui.git",
+    "url": "git+https://github.com/daarxwalker/hui.git",
     "directory": "alpine"
   },
   "type": "module",

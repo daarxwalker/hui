@@ -1,4 +1,4 @@
-# headlessui
+# hui
 
 Headless (unstyled) UI components built on [templ](https://templ.guide). The API shape
 follows [bits-ui](https://bits-ui.com/). Accessibility comes first: the correct default
@@ -6,11 +6,11 @@ state is rendered from Go, so the components work with plain HTML, with
 [htmx](https://htmx.org), or with [Alpine.js](https://alpinejs.dev) when you opt into it.
 
 ```bash
-go get github.com/daarxwalker/headlessui
+go get github.com/daarxwalker/hui
 ```
 
 **This README is written for a coding agent** that builds a project's own UI library on top
-of headlessui. Read it in this order:
+of hui. Read it in this order:
 
 1. [Requirements](#requirements): what the page has to load.
 2. [Building a project UI library](#building-a-project-ui-library): the pattern every styled
@@ -52,7 +52,7 @@ of headlessui. Read it in this order:
 
 ## Building a project UI library
 
-headlessui renders structure, accessibility and state. Every project adds the look in its
+hui renders structure, accessibility and state. Every project adds the look in its
 own small package of styled wrappers. Do not fork the core and do not restyle it inline
 at every call site. Write one wrapper per headless component, once, and use only the
 wrappers in the app.
@@ -84,7 +84,7 @@ import (
 	"maps"
 
 	"github.com/a-h/templ"
-	hui "github.com/daarxwalker/headlessui"
+	hui "github.com/daarxwalker/hui"
 )
 
 type Color string
@@ -153,7 +153,7 @@ import (
 	"cmp"
 	"strings"
 
-	hui "github.com/daarxwalker/headlessui"
+	hui "github.com/daarxwalker/hui"
 )
 
 type ButtonLook struct {
@@ -232,7 +232,7 @@ func createButtonProps(p ButtonProps) hui.ButtonProps {
 ```templ
 package ui
 
-import hui "github.com/daarxwalker/headlessui"
+import hui "github.com/daarxwalker/hui"
 
 templ Button(props ButtonProps) {
 	@hui.Button(createButtonProps(props)) {
@@ -290,7 +290,7 @@ import (
 	"cmp"
 
 	"github.com/a-h/templ"
-	hui "github.com/daarxwalker/headlessui"
+	hui "github.com/daarxwalker/hui"
 )
 
 type ModalProps struct {
@@ -382,7 +382,7 @@ func createModalCloseProps(p ModalCloseProps) hui.ModalCloseProps {
 ```templ
 package ui
 
-import hui "github.com/daarxwalker/headlessui"
+import hui "github.com/daarxwalker/hui"
 
 templ Modal(props ModalProps) {
 	@hui.Modal(props.ModalProps) {
@@ -853,7 +853,7 @@ Any element that opens an anchored overlay through a control constant (`Dropdown
 ## What it looks like
 
 ```templ
-import hui "github.com/daarxwalker/headlessui"
+import hui "github.com/daarxwalker/hui"
 
 @hui.Field(hui.FieldProps{
     Name:        "email",
@@ -2291,7 +2291,7 @@ concatenation is not enough for Tailwind — `px-4` and `px-10` would both survi
 winner would be decided by the stylesheet, not by your call. Plug a merger in once:
 
 ```go
-headlessui.MergeClass = func(existing, added string) string {
+hui.MergeClass = func(existing, added string) string {
     return twmerge.Merge(existing, added)
 }
 ```
@@ -2336,7 +2336,7 @@ CSS transitions all rely on the same thing. In practice that means giving every 
 the generated ids per render so a fragment comes back with the ids it had in the full page:
 
 ```go
-ctx = headlessui.WithIDScope(ctx, "signup")
+ctx = hui.WithIDScope(ctx, "signup")
 ```
 
 Lists that the server filters or loads page by page (`Listbox`, `Combobox`, `Table`) are

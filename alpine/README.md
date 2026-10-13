@@ -1,7 +1,7 @@
 # @daarxwalker/headlessui-alpine
 
 The [Alpine.js](https://alpinejs.dev) plugins behind
-[headlessui](https://github.com/daarxwalker/headlessui), a headless component library for
+[hui](https://github.com/daarxwalker/hui), a headless component library for
 [templ](https://templ.guide). The Go components already embed these files. This package is
 for when you bundle your own JavaScript or load Alpine from a CDN.
 
@@ -41,19 +41,19 @@ already started (for example after an htmx swap), it registers straight away.
 
 | Plugin | Registers | Docs |
 |---|---|---|
-| `checkbox` | `Alpine.data('huiCheckbox')` | [Checkbox](https://github.com/daarxwalker/headlessui#checkbox-switch-and-radio) |
-| `collapsible` | `Alpine.data('huiCollapsible')` | [Collapsible](https://github.com/daarxwalker/headlessui#collapsible) |
-| `combobox` | `Alpine.data('huiCombobox')` | [Combobox](https://github.com/daarxwalker/headlessui#combobox) |
-| `dropdown` | `Alpine.data('huiDropdown')` | [Dropdown](https://github.com/daarxwalker/headlessui#dropdown) |
-| `fileUpload` | `Alpine.data('huiFileUpload')` | [FileUpload](https://github.com/daarxwalker/headlessui#fileupload) |
-| `listbox` | `Alpine.data('huiListbox')` | [Listbox](https://github.com/daarxwalker/headlessui#listbox) |
-| `modal` | `Alpine.data('huiModal')` | [Modal](https://github.com/daarxwalker/headlessui#modal) |
-| `radio` | `Alpine.data('huiRadio')` | [Radio](https://github.com/daarxwalker/headlessui#checkbox-switch-and-radio) |
-| `range` | `Alpine.data('huiRange')` | [Range](https://github.com/daarxwalker/headlessui#range) |
-| `switch` | `Alpine.data('huiSwitch')` | [Switch](https://github.com/daarxwalker/headlessui#checkbox-switch-and-radio) |
-| `tabs` | `Alpine.data('huiTabs')` | [Tabs](https://github.com/daarxwalker/headlessui#tabs) |
-| `toast` | `Alpine.data('huiToast')` | [Toast](https://github.com/daarxwalker/headlessui#toast) |
-| `tooltip` | `Alpine.data('huiTooltip')` | [Tooltip](https://github.com/daarxwalker/headlessui#tooltip) |
+| `checkbox` | `Alpine.data('huiCheckbox')` | [Checkbox](https://github.com/daarxwalker/hui#checkbox-switch-and-radio) |
+| `collapsible` | `Alpine.data('huiCollapsible')` | [Collapsible](https://github.com/daarxwalker/hui#collapsible) |
+| `combobox` | `Alpine.data('huiCombobox')` | [Combobox](https://github.com/daarxwalker/hui#combobox) |
+| `dropdown` | `Alpine.data('huiDropdown')` | [Dropdown](https://github.com/daarxwalker/hui#dropdown) |
+| `fileUpload` | `Alpine.data('huiFileUpload')` | [FileUpload](https://github.com/daarxwalker/hui#fileupload) |
+| `listbox` | `Alpine.data('huiListbox')` | [Listbox](https://github.com/daarxwalker/hui#listbox) |
+| `modal` | `Alpine.data('huiModal')` | [Modal](https://github.com/daarxwalker/hui#modal) |
+| `radio` | `Alpine.data('huiRadio')` | [Radio](https://github.com/daarxwalker/hui#checkbox-switch-and-radio) |
+| `range` | `Alpine.data('huiRange')` | [Range](https://github.com/daarxwalker/hui#range) |
+| `switch` | `Alpine.data('huiSwitch')` | [Switch](https://github.com/daarxwalker/hui#checkbox-switch-and-radio) |
+| `tabs` | `Alpine.data('huiTabs')` | [Tabs](https://github.com/daarxwalker/hui#tabs) |
+| `toast` | `Alpine.data('huiToast')` | [Toast](https://github.com/daarxwalker/hui#toast) |
+| `tooltip` | `Alpine.data('huiTooltip')` | [Tooltip](https://github.com/daarxwalker/hui#tooltip) |
 
 The overlays (`dropdown`, `modal`, `tooltip`, `listbox`, `combobox`) share one
 stack of open layers for Escape, clicks outside and `inert`. Each built file carries its own

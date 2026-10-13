@@ -1,4 +1,4 @@
-module github.com/daarxwalker/headlessui
+module github.com/daarxwalker/hui
 
 go 1.27
 

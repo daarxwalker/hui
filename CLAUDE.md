@@ -1,4 +1,4 @@
-# headlessui — spec pro práci na téhle knihovně
+# hui — spec pro práci na téhle knihovně
 
 Headless (nestylované) UI komponenty nad [templ](https://templ.guide). Tvar API vychází
 z [bits-ui](https://bits-ui.com/). Cíl číslo jedna je přístupnost: správný výchozí stav
