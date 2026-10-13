@@ -1,0 +1,13 @@
+package headlessui
+
+import "context"
+
+templ Field(props FieldProps) {
+	{{
+		props = props.normalize(ctx)
+		ctx = context.WithValue(ctx, fieldKey, props)
+	}}
+	<div { fieldAttrs(props)... }>
+		{ children... }
+	</div>
+}

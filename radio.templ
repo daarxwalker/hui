@@ -1,0 +1,23 @@
+package headlessui
+
+templ Radio(props RadioProps) {
+	{{
+		c := radioAttrs(ctx, props)
+		ctx = checkableContext(ctx, c.state)
+	}}
+	<button { c.attrs... }>
+		if c.input != nil {
+			<input { c.input... }/>
+		}
+		{ children... }
+	</button>
+	if c.required != nil {
+		<input { c.required... }/>
+	}
+}
+
+templ RadioIndicator(props RadioIndicatorProps) {
+	<span { radioIndicatorAttrs(ctx, props)... }>
+		{ children... }
+	</span>
+}

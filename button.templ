@@ -1,0 +1,32 @@
+package headlessui
+
+templ Button(props ButtonProps) {
+	{{ attrs, isLink := buttonAttrs(props) }}
+	if isLink {
+		<a { attrs... }>
+			@buttonContent(props) {
+				{ children... }
+			}
+		</a>
+	} else {
+		<button { attrs... }>
+			@buttonContent(props) {
+				{ children... }
+			}
+		</button>
+	}
+}
+
+templ buttonContent(props ButtonProps) {
+	if props.LeftSlot != nil {
+		<span { buttonSlotAttrs("left")... }>
+			@props.LeftSlot
+		</span>
+	}
+	{ children... }
+	if props.RightSlot != nil {
+		<span { buttonSlotAttrs("right")... }>
+			@props.RightSlot
+		</span>
+	}
+}

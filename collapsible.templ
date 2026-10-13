@@ -1,0 +1,36 @@
+package headlessui
+
+templ Collapsible(props CollapsibleProps) {
+	{{ ctx, props = collapsibleContext(ctx, props) }}
+	<div { collapsibleAttrs(props)... }>
+		{ children... }
+	</div>
+}
+
+templ CollapsibleHeader(props CollapsibleHeaderProps) {
+	{{
+		attrs := collapsibleHeaderAttrs(ctx, props)
+		ctx = collapsibleHeaderContext(ctx)
+	}}
+	<div { attrs... }>
+		{ children... }
+	</div>
+}
+
+templ CollapsibleTitle(props CollapsibleTitleProps) {
+	<span { collapsibleTitleAttrs(ctx, props)... }>
+		{ children... }
+	</span>
+}
+
+templ CollapsibleTrigger(props CollapsibleTriggerProps) {
+	<button { collapsibleTriggerAttrs(ctx, props)... }>
+		{ children... }
+	</button>
+}
+
+templ CollapsibleContent(props CollapsibleContentProps) {
+	<div { collapsibleContentAttrs(ctx, props)... }>
+		{ children... }
+	</div>
+}

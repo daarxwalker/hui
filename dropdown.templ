@@ -1,0 +1,89 @@
+package headlessui
+
+templ Dropdown(props DropdownProps) {
+	{{ ctx, props = dropdownContext(ctx, props) }}
+	<div { dropdownAttrs(props)... }>
+		{ children... }
+	</div>
+}
+
+templ DropdownTrigger(props DropdownTriggerProps) {
+	<button { dropdownTriggerAttrs(ctx, props)... }>
+		{ children... }
+	</button>
+}
+
+templ DropdownContent(props DropdownContentProps) {
+	{{ attrs, teleport := dropdownContentAttrs(ctx, props) }}
+	@portal(teleport) {
+		<div { attrs... }>
+			{ children... }
+		</div>
+	}
+}
+
+templ DropdownItem(props DropdownItemProps) {
+	{{ attrs, isLink := dropdownItemAttrs(props) }}
+	{{ slots := ButtonProps{LeftSlot: props.LeftSlot, RightSlot: props.RightSlot} }}
+	if isLink {
+		<a { attrs... }>
+			@buttonContent(slots) {
+				{ children... }
+			}
+		</a>
+	} else {
+		<button { attrs... }>
+			@buttonContent(slots) {
+				{ children... }
+			}
+		</button>
+	}
+}
+
+templ DropdownCheckboxItem(props DropdownCheckboxItemProps) {
+	@dropdownCheckableItem(dropdownCheckboxItemAttrs(props), ButtonProps{LeftSlot: props.LeftSlot, RightSlot: props.RightSlot}) {
+		{ children... }
+	}
+}
+
+templ DropdownRadioGroup(props DropdownRadioGroupProps) {
+	{{ ctx, props = dropdownRadioGroupContext(ctx, props) }}
+	<div { dropdownRadioGroupAttrs(props)... }>
+		{ children... }
+	</div>
+}
+
+templ DropdownRadioItem(props DropdownRadioItemProps) {
+	@dropdownCheckableItem(dropdownRadioItemAttrs(ctx, props), ButtonProps{LeftSlot: props.LeftSlot, RightSlot: props.RightSlot}) {
+		{ children... }
+	}
+}
+
+templ dropdownCheckableItem(c checkable, slots ButtonProps) {
+	{{ ctx = checkableContext(ctx, c.state) }}
+	<button { c.attrs... }>
+		if c.input != nil {
+			<input { c.input... }/>
+		}
+		@buttonContent(slots) {
+			{ children... }
+		}
+	</button>
+}
+
+templ DropdownGroup(props DropdownGroupProps) {
+	{{ ctx, props = dropdownGroupContext(ctx, props) }}
+	<div { dropdownGroupAttrs(props)... }>
+		{ children... }
+	</div>
+}
+
+templ DropdownLabel(props DropdownLabelProps) {
+	<div { dropdownLabelAttrs(ctx, props)... }>
+		{ children... }
+	</div>
+}
+
+templ DropdownSeparator(props DropdownSeparatorProps) {
+	<div { dropdownSeparatorAttrs(props)... }></div>
+}

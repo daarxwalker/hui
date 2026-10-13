@@ -1,0 +1,46 @@
+package headlessui
+
+templ Select(props SelectProps) {
+	{{ ctx, attrs := selectContext(ctx, props) }}
+	<select { attrs... }>
+		{ children... }
+	</select>
+}
+
+templ SelectTrigger(props SelectTriggerProps) {
+	{{ attrs, placeholder, text := selectTriggerAttrs(ctx, props) }}
+	<button { attrs... }>
+		@buttonContent(ButtonProps{LeftSlot: props.LeftSlot, RightSlot: props.RightSlot}) {
+			{ children... }
+		}
+	</button>
+	@selectPlaceholder(placeholder, text)
+}
+
+templ selectPlaceholder(attrs templ.Attributes, text string) {
+	if attrs != nil {
+		<option { attrs... }>{ text }</option>
+	}
+}
+
+templ SelectValue(props SelectValueProps) {
+	<selectedcontent { selectValueAttrs(props)... }></selectedcontent>
+}
+
+templ SelectItem(props SelectItemProps) {
+	<option { selectItemAttrs(ctx, props)... }>
+		@buttonContent(ButtonProps{LeftSlot: props.LeftSlot, RightSlot: props.RightSlot}) {
+			{ children... }
+		}
+	</option>
+}
+
+templ SelectGroup(props SelectGroupProps) {
+	<optgroup { selectGroupAttrs(props)... }>
+		{ children... }
+	</optgroup>
+}
+
+templ SelectSeparator(props SelectSeparatorProps) {
+	<hr { selectSeparatorAttrs(props)... }/>
+}

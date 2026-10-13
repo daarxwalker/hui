@@ -1,0 +1,64 @@
+package headlessui
+
+templ Table(props TableProps) {
+	<table { tableAttrs(props)... }>
+		{ children... }
+	</table>
+}
+
+templ TableCaption(props TableCaptionProps) {
+	<caption { props.merge(nil)... }>
+		{ children... }
+	</caption>
+}
+
+templ TableHeader(props TableHeaderProps) {
+	<thead { tableSectionAttrs(props.Base)... }>
+		{ children... }
+	</thead>
+}
+
+templ TableBody(props TableBodyProps) {
+	<tbody { tableSectionAttrs(props.Base)... }>
+		{ children... }
+	</tbody>
+}
+
+templ TableFooter(props TableFooterProps) {
+	<tfoot { tableSectionAttrs(props.Base)... }>
+		{ children... }
+	</tfoot>
+}
+
+templ TableRow(props TableRowProps) {
+	<tr { tableRowAttrs(props)... }>
+		{ children... }
+	</tr>
+}
+
+templ TableHead(props TableHeadProps) {
+	<th { tableHeadAttrs(props)... }>
+		{ children... }
+	</th>
+}
+
+templ TableCell(props TableCellProps) {
+	<td { tableCellAttrs(props)... }>
+		{ children... }
+	</td>
+}
+
+templ TableLoader(props TableLoaderProps) {
+	{{ attrs, colspan := tableLoaderAttrs(props) }}
+	<tr { attrs... }>
+		if colspan != "" {
+			<td colspan={ colspan }>
+				{ children... }
+			</td>
+		} else {
+			<td>
+				{ children... }
+			</td>
+		}
+	</tr>
+}

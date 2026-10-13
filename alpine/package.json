@@ -1,0 +1,46 @@
+{
+  "name": "@daarxwalker/headlessui-alpine",
+  "version": "0.1.0",
+  "description": "Alpine.js plugins behind the headlessui templ components.",
+  "keywords": [
+    "alpinejs",
+    "alpine-plugin",
+    "headless",
+    "accessibility",
+    "templ",
+    "htmx"
+  ],
+  "license": "MIT",
+  "author": "daarxwalker",
+  "homepage": "https://github.com/daarxwalker/headlessui/tree/main/alpine#readme",
+  "bugs": "https://github.com/daarxwalker/headlessui/issues",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/daarxwalker/headlessui.git",
+    "directory": "alpine"
+  },
+  "type": "module",
+  "module": "dist/module.esm.js",
+  "exports": {
+    ".": "./dist/module.esm.js"
+  },
+  "unpkg": "dist/cdn.min.js",
+  "jsdelivr": "dist/cdn.min.js",
+  "files": [
+    "dist"
+  ],
+  "sideEffects": false,
+  "scripts": {
+    "build": "esbuild src/index.js --bundle --format=esm --outfile=dist/module.esm.js && esbuild builds/*.js --bundle --minify --format=iife --outdir=dist --entry-names=[name].min"
+  },
+  "peerDependencies": {
+    "alpinejs": "^3.0.0"
+  },
+  "devDependencies": {
+    "alpinejs": "^3.17.4",
+    "esbuild": "^0.28.2"
+  },
+  "dependencies": {
+    "@alpinejs/collapse": "^3.17.4"
+  }
+}

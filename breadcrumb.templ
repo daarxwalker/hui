@@ -1,0 +1,38 @@
+package headlessui
+
+templ Breadcrumb(props BreadcrumbProps) {
+	<nav { breadcrumbAttrs(props)... }>
+		{ children... }
+	</nav>
+}
+
+templ BreadcrumbList(props BreadcrumbListProps) {
+	<ol { props.merge(nil)... }>
+		{ children... }
+	</ol>
+}
+
+templ BreadcrumbItem(props BreadcrumbItemProps) {
+	<li { props.merge(nil)... }>
+		{ children... }
+	</li>
+}
+
+templ BreadcrumbLink(props BreadcrumbLinkProps) {
+	{{ attrs, isLink := breadcrumbLinkAttrs(props) }}
+	if isLink {
+		<a { attrs... }>
+			{ children... }
+		</a>
+	} else {
+		<span { attrs... }>
+			{ children... }
+		</span>
+	}
+}
+
+templ BreadcrumbSeparator(props BreadcrumbSeparatorProps) {
+	<li { breadcrumbSeparatorAttrs(props)... }>
+		{ children... }
+	</li>
+}

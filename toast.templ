@@ -1,0 +1,38 @@
+package headlessui
+
+templ Toaster(props ToasterProps) {
+	<ol { toasterAttrs(props)... }>
+		{ children... }
+	</ol>
+}
+
+templ Toast(props ToastProps) {
+	{{ ctx, props = toastContext(ctx, props) }}
+	<li { toastAttrs(props)... }>
+		{ children... }
+	</li>
+}
+
+templ ToastTitle(props ToastTitleProps) {
+	<div { toastPartAttrs(ctx, props.Base, "title")... }>
+		{ children... }
+	</div>
+}
+
+templ ToastDescription(props ToastDescriptionProps) {
+	<div { toastPartAttrs(ctx, props.Base, "description")... }>
+		{ children... }
+	</div>
+}
+
+templ ToastAction(props ToastActionProps) {
+	<button { toastActionAttrs(props)... }>
+		{ children... }
+	</button>
+}
+
+templ ToastClose(props ToastCloseProps) {
+	<button { toastCloseAttrs(ctx, props)... }>
+		{ children... }
+	</button>
+}

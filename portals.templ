@@ -1,0 +1,17 @@
+package headlessui
+
+templ Portals(props PortalsProps) {
+	<div { portalsAttrs(props)... }>
+		{ children... }
+	</div>
+}
+
+templ portal(teleport string) {
+	if teleport != "" {
+		<template x-teleport={ teleport }>
+			{ children... }
+		</template>
+	} else {
+		{ children... }
+	}
+}

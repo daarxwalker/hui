@@ -1,0 +1,84 @@
+package headlessui
+
+templ Combobox(props ComboboxProps) {
+	{{ ctx, state := comboboxContext(ctx, props) }}
+	<div { comboboxAttrs(state, props)... }>
+		@listInputs(state)
+		{ children... }
+	</div>
+}
+
+templ ComboboxInput(props ComboboxInputProps) {
+	<input { comboboxInputAttrs(ctx, props)... }/>
+}
+
+templ ComboboxTrigger(props ComboboxTriggerProps) {
+	<button { comboboxTriggerAttrs(ctx, props)... }>
+		{ children... }
+	</button>
+}
+
+templ ComboboxContent(props ComboboxContentProps) {
+	{{ attrs, teleport := comboboxContentAttrs(ctx, props) }}
+	@portal(teleport) {
+		<div { attrs... }>
+			{ children... }
+		</div>
+	}
+}
+
+templ ComboboxList(props ComboboxListProps) {
+	<div { comboboxListAttrs(ctx, props)... }>
+		{ children... }
+	</div>
+}
+
+templ ComboboxItem(props ComboboxItemProps) {
+	{{ ctx = listItemContext(ctx, props.Value) }}
+	<div { comboboxItemAttrs(ctx, props)... }>
+		@buttonContent(ButtonProps{LeftSlot: props.LeftSlot, RightSlot: props.RightSlot}) {
+			{ children... }
+		}
+	</div>
+}
+
+templ ComboboxItemIndicator(props ComboboxItemIndicatorProps) {
+	<span { listIndicatorAttrs(ctx, props.Base)... }>
+		{ children... }
+	</span>
+}
+
+templ ComboboxEmpty(props ComboboxEmptyProps) {
+	<div { listEmptyAttrs(props.Base)... }>
+		{ children... }
+	</div>
+}
+
+templ ComboboxLoader(props ComboboxLoaderProps) {
+	<div { listLoaderAttrs(props.Base)... }>
+		{ children... }
+	</div>
+}
+
+templ ComboboxRemove(props ComboboxRemoveProps) {
+	<button { comboboxRemoveAttrs(ctx, props)... }>
+		{ children... }
+	</button>
+}
+
+templ ComboboxGroup(props ComboboxGroupProps) {
+	{{ ctx, props = comboboxGroupContext(ctx, props) }}
+	<div { listGroupAttrs(props.Base)... }>
+		{ children... }
+	</div>
+}
+
+templ ComboboxGroupLabel(props ComboboxGroupLabelProps) {
+	<div { listGroupLabelAttrs(ctx, props.Base)... }>
+		{ children... }
+	</div>
+}
+
+templ ComboboxSeparator(props ComboboxSeparatorProps) {
+	<div { listSeparatorAttrs(props.Base)... }></div>
+}

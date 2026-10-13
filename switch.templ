@@ -1,0 +1,21 @@
+package headlessui
+
+templ Switch(props SwitchProps) {
+	{{
+		c := switchAttrs(ctx, props)
+		ctx = checkableContext(ctx, c.state)
+	}}
+	<button { c.attrs... }>
+		if c.input != nil {
+			<input { c.input... }/>
+		}
+		{ children... }
+	</button>
+	if c.required != nil {
+		<input { c.required... }/>
+	}
+}
+
+templ SwitchThumb(props SwitchThumbProps) {
+	<span { switchThumbAttrs(ctx, props)... }></span>
+}

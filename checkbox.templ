@@ -1,0 +1,23 @@
+package headlessui
+
+templ Checkbox(props CheckboxProps) {
+	{{
+		c := checkboxAttrs(ctx, props)
+		ctx = checkableContext(ctx, c.state)
+	}}
+	<button { c.attrs... }>
+		if c.input != nil {
+			<input { c.input... }/>
+		}
+		{ children... }
+	</button>
+	if c.required != nil {
+		<input { c.required... }/>
+	}
+}
+
+templ CheckboxIndicator(props CheckboxIndicatorProps) {
+	<span { checkboxIndicatorAttrs(ctx, props)... }>
+		{ children... }
+	</span>
+}

@@ -1,0 +1,6 @@
+package headlessui
+
+templ Textarea(props TextareaProps) {
+	{{ attrs, value := textareaAttrs(ctx, props) }}
+	<textarea { attrs... }>{ value }</textarea>
+}

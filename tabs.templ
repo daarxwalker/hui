@@ -1,0 +1,26 @@
+package headlessui
+
+templ Tabs(props TabsProps) {
+	{{ ctx, props = tabsContext(ctx, props) }}
+	<div { tabsAttrs(props)... }>
+		{ children... }
+	</div>
+}
+
+templ TabsList(props TabsListProps) {
+	<div { tabsListAttrs(ctx, props)... }>
+		{ children... }
+	</div>
+}
+
+templ TabsTrigger(props TabsTriggerProps) {
+	<button { tabsTriggerAttrs(ctx, props)... }>
+		{ children... }
+	</button>
+}
+
+templ TabsContent(props TabsContentProps) {
+	<div { tabsContentAttrs(ctx, props)... }>
+		{ children... }
+	</div>
+}

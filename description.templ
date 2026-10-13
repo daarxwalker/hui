@@ -1,0 +1,14 @@
+package headlessui
+
+templ Description(props DescriptionProps) {
+	{{ attrs, text, render := descriptionAttrs(ctx, props) }}
+	if render {
+		<p { attrs... }>
+			if text != "" {
+				{ text }
+			} else {
+				{ children... }
+			}
+		</p>
+	}
+}

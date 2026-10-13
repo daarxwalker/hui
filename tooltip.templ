@@ -1,0 +1,23 @@
+package headlessui
+
+templ Tooltip(props TooltipProps) {
+	{{ ctx, props = tooltipContext(ctx, props) }}
+	<div { tooltipAttrs(props)... }>
+		{ children... }
+	</div>
+}
+
+templ TooltipContent(props TooltipContentProps) {
+	{{ attrs, teleport := tooltipContentAttrs(ctx, props) }}
+	@portal(teleport) {
+		<div { attrs... }>
+			{ children... }
+		</div>
+	}
+}
+
+templ TooltipClose(props TooltipCloseProps) {
+	<button { tooltipCloseAttrs(ctx, props)... }>
+		{ children... }
+	</button>
+}

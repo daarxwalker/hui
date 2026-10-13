@@ -1,0 +1,14 @@
+package headlessui
+
+templ Error(props ErrorProps) {
+	{{ attrs, text, render := errorAttrs(ctx, props) }}
+	if render {
+		<p { attrs... }>
+			if text != "" {
+				{ text }
+			} else {
+				{ children... }
+			}
+		</p>
+	}
+}

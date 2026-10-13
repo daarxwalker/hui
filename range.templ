@@ -1,0 +1,14 @@
+package headlessui
+
+import "context"
+
+templ Range(props RangeProps) {
+	<div { rangeAttrs(ctx, props)... }>
+		{{ ctx = context.WithValue(ctx, rangeKey, newRangeState(ctx, props)) }}
+		{ children... }
+	</div>
+}
+
+templ RangeThumb(props RangeThumbProps) {
+	<input { rangeThumbAttrs(ctx, props)... }/>
+}

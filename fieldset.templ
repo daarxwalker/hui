@@ -1,0 +1,19 @@
+package headlessui
+
+import "context"
+
+templ Fieldset(props FieldsetProps) {
+	{{
+		props = props.normalize(ctx)
+		ctx = context.WithValue(ctx, fieldsetKey, props)
+	}}
+	<fieldset { fieldsetAttrs(props)... }>
+		{ children... }
+	</fieldset>
+}
+
+templ Legend(props LegendProps) {
+	<legend { legendAttrs(ctx, props)... }>
+		{ children... }
+	</legend>
+}

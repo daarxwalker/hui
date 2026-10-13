@@ -1,0 +1,53 @@
+package headlessui
+
+templ Modal(props ModalProps) {
+	{{ ctx, props = modalContext(ctx, props) }}
+	<div { modalAttrs(props)... }>
+		{ children... }
+	</div>
+}
+
+templ ModalTrigger(props ModalTriggerProps) {
+	<button { modalTriggerAttrs(ctx, props)... }>
+		{ children... }
+	</button>
+}
+
+templ ModalOverlay(props ModalOverlayProps) {
+	{{
+		attrs, teleport := modalOverlayAttrs(ctx, props)
+		ctx = modalOverlayContext(ctx)
+	}}
+	@portal(teleport) {
+		<div { attrs... }>
+			{ children... }
+		</div>
+	}
+}
+
+templ ModalContent(props ModalContentProps) {
+	{{ attrs, teleport := modalContentAttrs(ctx, props) }}
+	@portal(teleport) {
+		<div { attrs... }>
+			{ children... }
+		</div>
+	}
+}
+
+templ ModalTitle(props ModalTitleProps) {
+	<h2 { modalTitleAttrs(ctx, props)... }>
+		{ children... }
+	</h2>
+}
+
+templ ModalDescription(props ModalDescriptionProps) {
+	<p { modalDescriptionAttrs(ctx, props)... }>
+		{ children... }
+	</p>
+}
+
+templ ModalClose(props ModalCloseProps) {
+	<button { modalCloseAttrs(ctx, props)... }>
+		{ children... }
+	</button>
+}

@@ -1,0 +1,45 @@
+package headlessui
+
+templ FileUpload(props FileUploadProps) {
+	{{ ctx, props = fileUploadContext(ctx, props) }}
+	<div { fileUploadAttrs(props)... }>
+		{ children... }
+	</div>
+}
+
+templ FileUploadInput(props FileUploadInputProps) {
+	<input { fileUploadInputAttrs(ctx, props)... }/>
+}
+
+templ FileUploadDropzone(props FileUploadDropzoneProps) {
+	<div { fileUploadDropzoneAttrs(ctx, props)... }>
+		{ children... }
+	</div>
+}
+
+templ FileUploadList(props FileUploadListProps) {
+	<ul { fileUploadListAttrs(ctx, props)... }>
+		{ children... }
+	</ul>
+}
+
+templ FileUploadFile(props FileUploadFileProps) {
+	{{ attrs, loop := fileUploadFileAttrs(ctx, props) }}
+	if loop {
+		<template x-for="(file, index) in files" :key="index">
+			<li { attrs... }>
+				{ children... }
+			</li>
+		</template>
+	} else {
+		<li { attrs... }>
+			{ children... }
+		</li>
+	}
+}
+
+templ FileUploadFileName(props FileUploadFileNameProps) {
+	<span { fileUploadFileNameAttrs(ctx, props)... }>
+		{ children... }
+	</span>
+}

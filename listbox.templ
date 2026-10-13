@@ -1,0 +1,100 @@
+package headlessui
+
+templ Listbox(props ListboxProps) {
+	{{ ctx, state := listboxContext(ctx, props) }}
+	<div { listboxAttrs(state, props)... }>
+		@listInputs(state)
+		{ children... }
+	</div>
+}
+
+templ listInputs(state listState) {
+	for _, attrs := range listInputAttrs(state) {
+		<input { attrs... }/>
+	}
+	if attrs := listRequiredAttrs(state); attrs != nil {
+		<input { attrs... }/>
+	}
+}
+
+templ ListboxTrigger(props ListboxTriggerProps) {
+	<button { listboxTriggerAttrs(ctx, props)... }>
+		@buttonContent(ButtonProps{LeftSlot: props.LeftSlot, RightSlot: props.RightSlot}) {
+			{ children... }
+		}
+	</button>
+}
+
+templ ListboxValue(props ListboxValueProps) {
+	{{ attrs, placeholder := listboxValueAttrs(ctx, props) }}
+	<span { attrs... }>
+		if placeholder != "" {
+			{ placeholder }
+		} else {
+			{ children... }
+		}
+	</span>
+}
+
+templ ListboxContent(props ListboxContentProps) {
+	{{ attrs, teleport := listboxContentAttrs(ctx, props) }}
+	@portal(teleport) {
+		<div { attrs... }>
+			{ children... }
+		</div>
+	}
+}
+
+templ ListboxSearch(props ListboxSearchProps) {
+	<input { listboxSearchAttrs(ctx, props)... }/>
+}
+
+templ ListboxList(props ListboxListProps) {
+	<div { listboxListAttrs(ctx, props)... }>
+		{ children... }
+	</div>
+}
+
+templ ListboxItem(props ListboxItemProps) {
+	{{ ctx = listItemContext(ctx, props.Value) }}
+	<div { listboxItemAttrs(ctx, props)... }>
+		@buttonContent(ButtonProps{LeftSlot: props.LeftSlot, RightSlot: props.RightSlot}) {
+			{ children... }
+		}
+	</div>
+}
+
+templ ListboxItemIndicator(props ListboxItemIndicatorProps) {
+	<span { listIndicatorAttrs(ctx, props.Base)... }>
+		{ children... }
+	</span>
+}
+
+templ ListboxEmpty(props ListboxEmptyProps) {
+	<div { listEmptyAttrs(props.Base)... }>
+		{ children... }
+	</div>
+}
+
+templ ListboxLoader(props ListboxLoaderProps) {
+	<div { listLoaderAttrs(props.Base)... }>
+		{ children... }
+	</div>
+}
+
+templ ListboxGroup(props ListboxGroupProps) {
+	{{ ctx, props = listboxGroupContext(ctx, props) }}
+	<div { listGroupAttrs(props.Base)... }>
+		{ children... }
+	</div>
+}
+
+templ ListboxGroupLabel(props ListboxGroupLabelProps) {
+	<div { listGroupLabelAttrs(ctx, props.Base)... }>
+		{ children... }
+	</div>
+}
+
+templ ListboxSeparator(props ListboxSeparatorProps) {
+	<div { listSeparatorAttrs(props.Base)... }></div>
+}
