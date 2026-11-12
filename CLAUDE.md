@@ -28,20 +28,29 @@ důvodu — Go ho embeduje, takže knihovna jde použít bez Node.
 ```bash
 task release VERSION=v0.2.0
 task release:check VERSION=v0.2.0
+task release:github VERSION=v0.2.0
 task release:npm VERSION=v0.2.0
 ```
 
-`task release` nic necommituje, commity řeší uživatel ručně předem. Nejdřív `release:check`
-ověří, že `VERSION` je zadaná ve tvaru `vX.Y.Z`, je vyšší než poslední git tag i verze na npm,
-větev je `main` bez necommitnutých změn a ve shodě s `origin/main`, a uživatel je přihlášený
-do npm. Potom přegeneruje templ i `alpine/dist` (strom musí zůstat čistý) a pustí gofmt, vet
-a testy. Teprve pak `release:git` vytvoří a pushne tag (s `gh` i GitHub release)
-a `release:npm` publikuje balíček.
+`task release` nic necommituje, commity řeší uživatel ručně předem, včetně poznámek pod
+`## [Unreleased]` v [CHANGELOG.md](CHANGELOG.md). Nejdřív `release:check` ověří, že `VERSION`
+je zadaná ve tvaru `vX.Y.Z`, je vyšší než poslední git tag i verze na npm, pod
+`## [Unreleased]` něco je, větev je `main` bez necommitnutých změn a ve shodě s `origin/main`
+a uživatel je přihlášený do `gh` i npm. Potom přegeneruje templ i `alpine/dist` (strom musí
+zůstat čistý) a pustí gofmt, vet a testy. Teprve pak `release:git` vytvoří a pushne tag
+a vyprázdní `## [Unreleased]`, `release:github` založí GitHub release a `release:npm` publikuje
+balíček. Poznámky jdou do anotace tagu i do GitHub releasu, historie verzí žije tam, ne
+v CHANGELOGu. Vyprázdněný CHANGELOG zůstane necommitnutý, commitne ho uživatel.
 
-Verze na npm je vždy ta z tagu: `release:npm` běží jen na čistém checkoutu tagu, zkopíruje
-`package.json`, `README.md`, `LICENSE` a `dist` do dočasné složky, tam nastaví verzi a publikuje.
-Na npm tak jde přesně ten `dist`, který embeduje Go, a `version` v `alpine/package.json`
-se při releasu nemění. Když npm krok selže, dokonči ho `task release:npm VERSION=…`.
+`release:github` a `release:npm` jdou pustit samostatně, když jejich krok selže (tag už existuje,
+takže celý `task release` znovu neprojde). Oba berou všechno z tagu, ne z pracovního stromu:
+poznámky přes `git show <tag>:CHANGELOG.md` (v tagu ještě nevyprázdněné), npm balíček přes
+`git archive <tag> alpine`. Verze
+na npm je proto vždy ta z tagu a jde na ni přesně ten `dist`, který embeduje Go. Verze se
+nastaví jen v dočasné kopii, `version` v `alpine/package.json` se při releasu nemění.
+
+Shell, ve kterém Task spouští příkazy (mvdan/sh), nevyhodnotí správně `!` před pipeline,
+proto podmínky v Taskfile používají `[ -z "$(…)" ]` nebo `if …; then …; fi`.
 
 ## Pravidla, která se neporušují
 
