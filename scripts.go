@@ -1,4 +1,4 @@
-package headlessui
+package hui
 
 import (
 	_ "embed"

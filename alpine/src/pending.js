@@ -1,4 +1,4 @@
-const key = Symbol.for('headlessui.pending')
+const key = Symbol.for('hui.pending')
 
 function mark(element) {
 	const state = element[key] || (element[key] = { count: 0, kept: element.hasAttribute('data-pending') })

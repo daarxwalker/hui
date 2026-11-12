@@ -1,4 +1,4 @@
-package headlessui
+package hui
 
 import (
 	"context"
@@ -62,7 +62,7 @@ func TestButton(t *testing.T) {
 		html := testRenderIn(t, ctx, templ.Join(PendingScript(), PendingScript()))
 
 		assert.Equal(t, 1, testCount(html, "<script>"))
-		assert.Contains(t, html, "headlessui.pending")
+		assert.Contains(t, html, "hui.pending")
 	})
 
 	t.Run("the pending script works without Alpine", func(t *testing.T) {

@@ -1,4 +1,4 @@
-package headlessui
+package hui
 
 import (
 	"context"
@@ -19,7 +19,7 @@ func TestScripts(t *testing.T) {
 		for _, name := range []string{"huiCheckbox", "huiCollapsible", "huiCombobox", "huiDropdown", "huiFileUpload", "huiListbox", "huiModal", "huiRadio", "huiRange", "huiSwitch", "huiTabs", "huiToast", "huiTooltip"} {
 			assert.Contains(t, html, name)
 		}
-		assert.Contains(t, html, "headlessui.pending")
+		assert.Contains(t, html, "hui.pending")
 	})
 
 	t.Run("the bundle registers itself", func(t *testing.T) {

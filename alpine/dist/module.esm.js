@@ -375,7 +375,7 @@ function collapsible(Alpine) {
 }
 
 // src/pending.js
-var key = /* @__PURE__ */ Symbol.for("headlessui.pending");
+var key = /* @__PURE__ */ Symbol.for("hui.pending");
 function mark(element) {
   const state = element[key] || (element[key] = { count: 0, kept: element.hasAttribute("data-pending") });
   state.count++;
@@ -1844,7 +1844,7 @@ function tooltip(Alpine) {
 }
 
 // src/index.js
-function headlessui(Alpine) {
+function hui(Alpine) {
   pending();
   Alpine.plugin(checkbox);
   Alpine.plugin(collapsible);
@@ -1864,7 +1864,7 @@ export {
   checkbox,
   collapsible,
   combobox,
-  headlessui as default,
+  hui as default,
   dropdown,
   fileUpload,
   listbox,

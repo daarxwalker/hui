@@ -1,4 +1,4 @@
-import headlessui from '../src/index.js'
+import hui from '../src/index.js'
 import register from '../src/register.js'
 
-register(headlessui)
+register(hui)

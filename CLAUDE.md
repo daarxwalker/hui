@@ -23,6 +23,26 @@ Po každé změně `.templ` souboru nebo attrs funkce pusť `templ generate`. Ge
 Po každé změně v `alpine/src` pusť `npm run build`. `alpine/dist` se commituje ze stejného
 důvodu — Go ho embeduje, takže knihovna jde použít bez Node.
 
+## Release
+
+```bash
+task release VERSION=v0.2.0
+task release:check VERSION=v0.2.0
+task release:npm VERSION=v0.2.0
+```
+
+`task release` nic necommituje, commity řeší uživatel ručně předem. Nejdřív `release:check`
+ověří, že `VERSION` je zadaná ve tvaru `vX.Y.Z`, je vyšší než poslední git tag i verze na npm,
+větev je `main` bez necommitnutých změn a ve shodě s `origin/main`, a uživatel je přihlášený
+do npm. Potom přegeneruje templ i `alpine/dist` (strom musí zůstat čistý) a pustí gofmt, vet
+a testy. Teprve pak `release:git` vytvoří a pushne tag (s `gh` i GitHub release)
+a `release:npm` publikuje balíček.
+
+Verze na npm je vždy ta z tagu: `release:npm` běží jen na čistém checkoutu tagu, zkopíruje
+`package.json`, `README.md`, `LICENSE` a `dist` do dočasné složky, tam nastaví verzi a publikuje.
+Na npm tak jde přesně ten `dist`, který embeduje Go, a `version` v `alpine/package.json`
+se při releasu nemění. Když npm krok selže, dokonči ho `task release:npm VERSION=…`.
+
 ## Pravidla, která se neporušují
 
 - **Jeden plochý Go balíček.** Žádný druhý modul, žádný `go.work`. Podsložky jsou jen dvě:
@@ -116,7 +136,7 @@ aby jedna sada tříd stylovaného tlačítka šla dát na kterékoli z nich.
 - `TextInput` má Alpine **volitelný, výchozí vypnutý** (`Alpine: true`). S Tailwindem
   to pokryje `focus-visible:` a `placeholder-shown:`.
 - Veškerý JS žije v [alpine/](alpine) jako Alpine pluginy — budoucí veřejný npm balíček
-  `@daarxwalker/headlessui-alpine`. Alpine je v něm `peerDependency`, ne závislost.
+  `@daarxwalker/hui-alpine`. Alpine je v něm `peerDependency`, ne závislost.
 - Plugin komponenty je `alpine/src/komponenta.js` s `export default function (Alpine)`,
   který registruje přes `Alpine.data(...)`. Přidej ho do `src/index.js` (export i celkový
   plugin) a vytvoř `alpine/builds/komponenta.js`, který ho předá `register`.

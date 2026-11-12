@@ -1,4 +1,4 @@
-# @daarxwalker/headlessui-alpine
+# @daarxwalker/hui-alpine
 
 The [Alpine.js](https://alpinejs.dev) plugins behind
 [hui](https://github.com/daarxwalker/hui), a headless component library for
@@ -8,21 +8,21 @@ for when you bundle your own JavaScript or load Alpine from a CDN.
 ## Install
 
 ```bash
-npm install alpinejs @daarxwalker/headlessui-alpine
+npm install alpinejs @daarxwalker/hui-alpine
 ```
 
 ```js
 import Alpine from 'alpinejs'
-import headlessui from '@daarxwalker/headlessui-alpine'
+import hui from '@daarxwalker/hui-alpine'
 
-Alpine.plugin(headlessui)
+Alpine.plugin(hui)
 Alpine.start()
 ```
 
 Each component is also exported on its own:
 
 ```js
-import { modal } from '@daarxwalker/headlessui-alpine'
+import { modal } from '@daarxwalker/hui-alpine'
 
 Alpine.plugin(modal)
 ```
@@ -33,7 +33,7 @@ Load the plugin before Alpine. It registers itself on `alpine:init`, and if Alpi
 already started (for example after an htmx swap), it registers straight away.
 
 ```html
-<script defer src="https://cdn.jsdelivr.net/npm/@daarxwalker/headlessui-alpine@0.1.0/dist/cdn.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/@daarxwalker/hui-alpine@0.1.0/dist/cdn.min.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3/dist/cdn.min.js"></script>
 ```
 

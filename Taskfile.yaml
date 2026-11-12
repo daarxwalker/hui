@@ -1,0 +1,106 @@
+version: "3"
+
+vars:
+    PACKAGE: "@daarxwalker/hui-alpine"
+
+tasks:
+    generate:
+        desc: Regenerate the templ files and the Alpine dist
+        cmds:
+            - templ generate
+            - npm --prefix alpine run build
+
+    check:
+        desc: Run gofmt, go vet and the tests
+        cmds:
+            - cmd: |
+                  unformatted="$(gofmt -l .)"
+                  [ -z "$unformatted" ] || { echo "gofmt: $unformatted" >&2; exit 1; }
+            - go vet ./...
+            - go test -count=1 ./...
+
+    release:
+        desc: Check, tag and push VERSION to git, then publish the same version of the Alpine package to npm (task release VERSION=v0.2.0)
+        requires:
+            vars: [VERSION]
+        cmds:
+            - task: release:check
+            - task: release:git
+            - task: release:npm
+
+    release:check:
+        desc: Run every release check for VERSION without tagging or publishing anything
+        requires:
+            vars: [VERSION]
+        vars:
+            NPM_VERSION: '{{trimPrefix "v" .VERSION}}'
+        cmds:
+            - cmd: |
+                  set -e
+                  fail() { echo "release: $*" >&2; exit 1; }
+                  newer() {
+                      [ -z "$2" ] && return 0
+                      [ "$1" != "$2" ] && [ "$(printf '%s\n%s\n' "$1" "$2" | sort -t. -k1,1n -k2,2n -k3,3n | tail -n1)" = "$1" ]
+                  }
+                  echo "{{.VERSION}}" | grep -Eq '^v[0-9]+\.[0-9]+\.[0-9]+$' || fail "VERSION must look like v1.2.3, got '{{.VERSION}}'"
+                  [ "$(git rev-parse --abbrev-ref HEAD)" = main ] || fail "release from the main branch"
+                  [ -z "$(git status --porcelain)" ] || fail "the working tree is not clean, commit or stash your changes first"
+                  git fetch --quiet --tags origin
+                  [ "$(git rev-parse HEAD)" = "$(git rev-parse origin/main)" ] || fail "main is not in sync with origin/main, push or pull first"
+                  ! git rev-parse -q --verify "refs/tags/{{.VERSION}}" >/dev/null || fail "tag {{.VERSION}} already exists"
+                  tag="$(git tag -l --sort=-v:refname 'v[0-9]*' | head -n1)"
+                  newer "{{.NPM_VERSION}}" "${tag#v}" || fail "VERSION {{.VERSION}} must be higher than the last tag $tag"
+                  published="$(npm view "{{.PACKAGE}}" version 2>/dev/null || true)"
+                  newer "{{.NPM_VERSION}}" "$published" || fail "VERSION {{.VERSION}} must be higher than $published on npm"
+                  npm whoami >/dev/null 2>&1 || fail "not logged in to npm, run: npm login"
+                  echo "release: {{.VERSION}} follows ${tag:-no tag} on git and ${published:-nothing} on npm"
+            - npm --prefix alpine ci
+            - task: generate
+            - cmd: |
+                  [ -z "$(git status --porcelain)" ] || {
+                      git status --short >&2
+                      echo "release: the committed *_templ.go or alpine/dist are out of date, commit the regenerated files first" >&2
+                      exit 1
+                  }
+            - task: check
+
+    release:git:
+        internal: true
+        requires:
+            vars: [VERSION]
+        cmds:
+            - git tag -a "{{.VERSION}}" -m "{{.VERSION}}"
+            - git push origin "{{.VERSION}}"
+            - cmd: |
+                  if command -v gh >/dev/null 2>&1; then
+                      gh release create "{{.VERSION}}" --verify-tag --title "{{.VERSION}}" --generate-notes
+                  else
+                      echo "release: gh is not installed, skipping the GitHub release"
+                  fi
+
+    release:npm:
+        desc: Publish the Alpine package from tag VERSION to npm, also to finish a release whose npm step failed
+        requires:
+            vars: [VERSION]
+        vars:
+            NPM_VERSION: '{{trimPrefix "v" .VERSION}}'
+        preconditions:
+            - sh: git rev-parse -q --verify "refs/tags/{{.VERSION}}" >/dev/null
+              msg: "tag {{.VERSION}} does not exist, run: task release VERSION={{.VERSION}}"
+            - sh: '[ "$(git rev-parse HEAD)" = "$(git rev-parse "{{.VERSION}}^{commit}")" ] && [ -z "$(git status --porcelain)" ]'
+              msg: "the working tree is not a clean checkout of tag {{.VERSION}}, npm must get the same dist that Go embeds"
+            - sh: '! npm view "{{.PACKAGE}}@{{.NPM_VERSION}}" version 2>/dev/null | grep -q .'
+              msg: "{{.PACKAGE}}@{{.NPM_VERSION}} is already on npm"
+            - sh: npm whoami >/dev/null 2>&1
+              msg: "not logged in to npm, run: npm login"
+        cmds:
+            - cmd: |
+                  set -e
+                  stage="$(mktemp -d)"
+                  cp -R alpine/package.json alpine/README.md alpine/LICENSE alpine/dist "$stage/"
+                  cd "$stage"
+                  npm pkg set version="{{.NPM_VERSION}}"
+                  npm publish --access public
+                  cd - >/dev/null
+                  rm -rf "$stage"
+              interactive: true

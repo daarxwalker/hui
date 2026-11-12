@@ -30,7 +30,7 @@ export {
 	tooltip,
 }
 
-export default function headlessui(Alpine) {
+export default function hui(Alpine) {
 	pending()
 	Alpine.plugin(checkbox)
 	Alpine.plugin(collapsible)
