@@ -1,5 +1,5 @@
 {
-  "name": "@daarxwalker/hui-alpine",
+  "name": "@daar/hui-alpine",
   "version": "0.1.0",
   "description": "Alpine.js plugins behind the hui templ components.",
   "keywords": [
@@ -11,7 +11,7 @@
     "htmx"
   ],
   "license": "MIT",
-  "author": "daarxwalker",
+  "author": "daar",
   "homepage": "https://github.com/daarxwalker/hui/tree/main/alpine#readme",
   "bugs": "https://github.com/daarxwalker/hui/issues",
   "repository": {

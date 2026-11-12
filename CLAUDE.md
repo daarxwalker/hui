@@ -136,7 +136,7 @@ aby jedna sada tříd stylovaného tlačítka šla dát na kterékoli z nich.
 - `TextInput` má Alpine **volitelný, výchozí vypnutý** (`Alpine: true`). S Tailwindem
   to pokryje `focus-visible:` a `placeholder-shown:`.
 - Veškerý JS žije v [alpine/](alpine) jako Alpine pluginy — budoucí veřejný npm balíček
-  `@daarxwalker/hui-alpine`. Alpine je v něm `peerDependency`, ne závislost.
+  `@daar/hui-alpine`. Alpine je v něm `peerDependency`, ne závislost.
 - Plugin komponenty je `alpine/src/komponenta.js` s `export default function (Alpine)`,
   který registruje přes `Alpine.data(...)`. Přidej ho do `src/index.js` (export i celkový
   plugin) a vytvoř `alpine/builds/komponenta.js`, který ho předá `register`.

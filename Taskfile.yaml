@@ -1,7 +1,7 @@
 version: "3"
 
 vars:
-    PACKAGE: "@daarxwalker/hui-alpine"
+    PACKAGE: "@daar/hui-alpine"
 
 tasks:
     generate:

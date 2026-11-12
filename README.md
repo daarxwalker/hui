@@ -2410,11 +2410,11 @@ partials. Pick one:
 - `@hui.ModalScript()`, `@hui.ComboboxScript()`, … render only the plugins a page uses.
   Each one is rendered once per page however many times you call it.
 - Bundle it yourself from [`alpine/`](alpine), the npm package
-  `@daarxwalker/hui-alpine`:
+  `@daar/hui-alpine`:
 
 ```js
 import Alpine from 'alpinejs'
-import hui from '@daarxwalker/hui-alpine'
+import hui from '@daar/hui-alpine'
 
 Alpine.plugin(hui)
 Alpine.start()
@@ -2464,5 +2464,5 @@ it. Rebuild it after every change in `alpine/src`.
 
 ## License
 
-[MIT](LICENSE). The npm package [`@daarxwalker/hui-alpine`](alpine) is released under
+[MIT](LICENSE). The npm package [`@daar/hui-alpine`](alpine) is released under
 the same license.
