@@ -16,6 +16,7 @@ npm run build
 | File | For |
 |---|---|
 | `dist/module.esm.js` | `go tool hui assets`, which writes it as `hui.js` with a version header |
+| `src/index.d.ts` | written by hand, `go tool hui assets` writes it as `hui.d.ts`; declare every export of `src/index.js` in it |
 | `dist/cdn.min.js` | `hui.Scripts()`, every plugin in one self-registering script |
 | `dist/<component>.min.js` | `hui.<Component>Script()`, a single self-registering plugin |
 

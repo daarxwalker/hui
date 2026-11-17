@@ -3,6 +3,9 @@ package hui
 import (
 	"context"
 	"io"
+	"io/fs"
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 
@@ -33,4 +36,32 @@ func testWithChildren(c templ.Component, children ...templ.Component) templ.Comp
 
 func testCount(html, needle string) int {
 	return strings.Count(html, needle)
+}
+
+func testReadTree(t *testing.T, dir string) map[string]string {
+	t.Helper()
+	files := make(map[string]string)
+	err := filepath.WalkDir(dir, func(name string, entry fs.DirEntry, walkErr error) error {
+		require.NoError(t, walkErr)
+		if entry.IsDir() {
+			return nil
+		}
+		content, readErr := os.ReadFile(name)
+		require.NoError(t, readErr)
+		relative, relErr := filepath.Rel(dir, name)
+		require.NoError(t, relErr)
+		files[filepath.ToSlash(relative)] = string(content)
+		return nil
+	})
+	require.NoError(t, err)
+	return files
+}
+
+func testWriteTree(t *testing.T, dir string, files map[string]string) {
+	t.Helper()
+	for name, content := range files {
+		target := filepath.Join(dir, filepath.FromSlash(name))
+		require.NoError(t, os.MkdirAll(filepath.Dir(target), 0o755))
+		require.NoError(t, os.WriteFile(target, []byte(content), 0o644))
+	}
 }

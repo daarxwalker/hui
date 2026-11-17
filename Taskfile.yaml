@@ -67,15 +67,21 @@ tasks:
             - task: assets
 
     assets:
-        desc: Generate the assets into an empty directory and check that a second run finds nothing to change
+        desc: Generate the assets into empty directories and check the files, the list and that the output is deterministic
         cmds:
             - cmd: |
                   set -e
+                  fail() { echo "release: $*" >&2; exit 1; }
                   out="$(mktemp -d)"
                   trap 'rm -rf "$out"' EXIT
                   go run ./cmd/hui assets -dir "$out/hui"
                   go run ./cmd/hui assets -dir "$out/hui" -check
-                  tail -n +2 "$out/hui/hui.js" | cmp -s - alpine/dist/module.esm.js || { echo "release: hui.js is not alpine/dist/module.esm.js" >&2; exit 1; }
+                  go run ./cmd/hui assets -dir "$out/again"
+                  diff -r "$out/hui" "$out/again" >/dev/null || fail "two runs of go tool hui assets differ"
+                  tail -n +2 "$out/hui/hui.js" | cmp -s - alpine/dist/module.esm.js || fail "hui.js is not alpine/dist/module.esm.js"
+                  tail -n +2 "$out/hui/hui.d.ts" | cmp -s - alpine/src/index.d.ts || fail "hui.d.ts is not alpine/src/index.d.ts"
+                  [ "$(grep -c '^hui\.\(js\|d\.ts\) github\.com/daarxwalker/hui ' "$out/hui/.hui-assets")" = 2 ] || fail ".hui-assets does not list hui.js and hui.d.ts"
+                  [ "$(ls -A "$out/hui" | tr '\n' ' ')" = ".hui-assets hui.d.ts hui.js " ] || fail "unexpected files in the generated directory: $(ls -A "$out/hui")"
 
     release:git:
         internal: true

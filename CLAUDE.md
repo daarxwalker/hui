@@ -38,7 +38,9 @@ je zadaná ve tvaru `vX.Y.Z`, je vyšší než poslední git tag, pod `## [Unrel
 větev je `main` bez necommitnutých změn a ve shodě s `origin/main` a uživatel je přihlášený
 do `gh`. Potom přegeneruje templ i `alpine/dist` (strom musí zůstat čistý), pustí gofmt, vet,
 testy a `task assets` (`go run ./cmd/hui assets` do prázdné složky, druhý běh s `-check` nesmí
-nic najít a `hui.js` bez hlavičky musí být bajt po bajtu `alpine/dist/module.esm.js`). Teprve
+nic najít, běh do jiné složky musí dát bajt po bajtu totéž, `hui.js` a `hui.d.ts` bez hlavičky
+jsou `alpine/dist/module.esm.js` a `alpine/src/index.d.ts`, `.hui-assets` je obsahuje a ve
+složce nic jiného není). Teprve
 pak `release:git` vytvoří a pushne tag a vyprázdní `## [Unreleased]` a `release:github` založí
 GitHub release. Poznámky jdou do anotace tagu i do GitHub releasu, historie verzí žije tam,
 ne v CHANGELOGu. Vyprázdněný CHANGELOG zůstane necommitnutý, commitne ho uživatel.
@@ -152,7 +154,8 @@ aby jedna sada tříd stylovaného tlačítka šla dát na kterékoli z nich.
   ho dostanou z Go modulu. Alpine ani htmx se do buildu nepřibalují, načítá je aplikace.
 - Plugin komponenty je `alpine/src/komponenta.js` s `export default function (Alpine)`,
   který registruje přes `Alpine.data(...)`. Přidej ho do `src/index.js` (export i celkový
-  plugin) a vytvoř `alpine/builds/komponenta.js`, který ho předá `register`.
+  plugin), deklaruj ho v `src/index.d.ts` a vytvoř `alpine/builds/komponenta.js`, který ho
+  předá `register`.
 - Build dělá tři věci: `dist/module.esm.js` pro `go tool hui assets` (zapíše ho jako
   `hui.js` s hlavičkou verze), `dist/cdn.min.js` pro `Scripts()` a
   `dist/komponenta.min.js` pro `<Komponenta>Script()`.
@@ -162,12 +165,18 @@ aby jedna sada tříd stylovaného tlačítka šla dát na kterékoli z nich.
   [scripts.go](scripts.go)), nebo jednotlivé `<Komponenta>Script()`
   (`//go:embed alpine/dist/komponenta.min.js` + `templ.NewOnceHandle`, jednou na stránku).
   `register` se umí zaregistrovat i když skript dorazí až po startu Alpine.
-- **`go tool hui assets`** zapíše soubory z `Assets()` do `-dir` (výchozí `hui/` vedle
-  direktivy `go:generate`). Verze v hlavičce je z `debug.ReadBuildInfo()` (`replace` na
-  místní složku dá `(devel)`). Výstup je deterministický a nemění nezměněné soubory. Složka
-  patří příkazu: smaže soubory, které nová sada nemá, a odmítne (`ErrForeignAssets`) zapsat
-  do neprázdné složky, kde žádný soubor nemá hlavičku. Žádný konfigurační soubor, cesta je
-  jen v direktivě.
+- **`go tool hui assets`** zapíše soubory z `Assets()` (`hui.js` z `dist/module.esm.js`,
+  `hui.d.ts` z ručně psaného [alpine/src/index.d.ts](alpine/src/index.d.ts), který musí
+  deklarovat každý export `src/index.js`, hlídá to test) do `-dir` (výchozí `hui/` vedle
+  direktivy `go:generate`). Verze je z `debug.ReadBuildInfo()` (`replace` na místní složku
+  dá `(devel)`). Výstup je deterministický a nemění nezměněné soubory.
+- **O vlastnictví rozhoduje jen seznam `.hui-assets`** (řádek `cesta modul verze`, seřazený),
+  nikdy hlavička v obsahu: pdui do složky píše i binární písma. Maže se jen to, co je na
+  seznamu a v nové sadě chybí. Neskrytý soubor mimo seznam je cizí: `WriteAssets` skončí
+  `ErrForeignAssets` a nic nezapíše ani nesmaže, `-check` ho ohlásí. Složka bez seznamu se
+  zapíše jen prázdná, nebo když v ní jsou jen soubory s hlavičkou (přechod z v0.1.2).
+  Skryté soubory a složky (`.DS_Store`, `.gitkeep`) kromě `.hui-assets` se nečtou, nehlásí
+  ani nemažou. Žádný konfigurační soubor, cesta je jen v direktivě.
 - V metodách pluginu sahej na kořen komponenty přes `this.$root`, ne `this.$el` — když se
   metoda zavolá z potomka (`<button @click="hide()">`), `$el` je ten potomek.
 - **Každé pole instance deklaruj v datech předem** (`layer: null`, `cleanup: null`, …).
