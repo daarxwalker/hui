@@ -22,6 +22,34 @@ type Asset struct {
 	Content []byte
 }
 
+type AssetChangeKind string
+
+const (
+	AssetMissing AssetChangeKind = "missing"
+	AssetDiffers AssetChangeKind = "differs"
+	AssetStale   AssetChangeKind = "stale"
+	AssetForeign AssetChangeKind = "foreign"
+)
+
+type AssetChange struct {
+	Name    string
+	Kind    AssetChangeKind
+	Module  string
+	Version string
+}
+
+func (c AssetChange) String() string {
+	switch {
+	case c.Kind == AssetForeign:
+		return c.Name + ": foreign, not in " + assetsList
+	case c.Module == "":
+		return c.Name + ": " + string(c.Kind)
+	case c.Kind == AssetDiffers:
+		return c.Name + ": differs, on disk from " + c.Module + " " + c.Version
+	}
+	return c.Name + ": " + string(c.Kind) + ", from " + c.Module + " " + c.Version
+}
+
 const (
 	assetsModule    = "github.com/daarxwalker/hui"
 	assetsDevel     = "(devel)"
@@ -66,6 +94,14 @@ func WriteAssets(dir string, files map[string]Asset) error {
 	if foreign := current.foreignNames(); len(foreign) > 0 {
 		return fmt.Errorf("write assets to %s failed: %w: %s", dir, ErrForeignAssets, strings.Join(foreign, ", "))
 	}
+	onDisk := current.list
+	pending := createAssetList(current.mergeListed(files))
+	if !bytes.Equal(pending, onDisk) {
+		if writeErr := writeAsset(dir, assetsList, pending); writeErr != nil {
+			return fmt.Errorf("write pending asset list failed: %w", writeErr)
+		}
+		onDisk = pending
+	}
 	for name, asset := range files {
 		if content, found := current.present[name]; found && bytes.Equal(content, asset.Content) {
 			continue
@@ -86,7 +122,7 @@ func WriteAssets(dir string, files map[string]Asset) error {
 		}
 	}
 	list := createAssetList(files)
-	if bytes.Equal(list, current.list) {
+	if bytes.Equal(list, onDisk) {
 		return nil
 	}
 	if writeErr := writeAsset(dir, assetsList, list); writeErr != nil {
@@ -95,7 +131,7 @@ func WriteAssets(dir string, files map[string]Asset) error {
 	return nil
 }
 
-func CheckAssets(dir string, files map[string]Asset) ([]string, error) {
+func CheckAssets(dir string, files map[string]Asset) ([]AssetChange, error) {
 	if err := checkAssetNames(files); err != nil {
 		return nil, fmt.Errorf("check asset names failed: %w", err)
 	}
@@ -103,14 +139,14 @@ func CheckAssets(dir string, files map[string]Asset) ([]string, error) {
 	if err != nil {
 		return nil, fmt.Errorf("read assets in %s failed: %w", dir, err)
 	}
-	var changes []string
+	var changes []AssetChange
 	for _, name := range current.foreignNames() {
-		changes = append(changes, name+": foreign, not in "+assetsList)
+		changes = append(changes, AssetChange{Name: name, Kind: AssetForeign})
 	}
 	for name, asset := range files {
 		content, found := current.present[name]
 		if !found {
-			changes = append(changes, name+": missing")
+			changes = append(changes, AssetChange{Name: name, Kind: AssetMissing})
 			continue
 		}
 		listed, ok := current.listed[name]
@@ -118,7 +154,7 @@ func CheckAssets(dir string, files map[string]Asset) ([]string, error) {
 			continue
 		}
 		if !bytes.Equal(content, asset.Content) || listed.Module != asset.Module || listed.Version != asset.Version {
-			changes = append(changes, name+": differs, on disk from "+listed.Module+" "+listed.Version)
+			changes = append(changes, AssetChange{Name: name, Kind: AssetDiffers, Module: listed.Module, Version: listed.Version})
 		}
 	}
 	for name, listed := range current.listed {
@@ -128,14 +164,16 @@ func CheckAssets(dir string, files map[string]Asset) ([]string, error) {
 		if _, onDisk := current.present[name]; !onDisk {
 			continue
 		}
-		changes = append(changes, name+": stale, from "+listed.Module+" "+listed.Version)
+		changes = append(changes, AssetChange{Name: name, Kind: AssetStale, Module: listed.Module, Version: listed.Version})
 	}
-	slices.Sort(changes)
+	slices.SortFunc(changes, func(a, b AssetChange) int {
+		return strings.Compare(a.Name, b.Name)
+	})
 	if current.list == nil {
-		return append(changes, assetsList+": missing"), nil
+		return append(changes, AssetChange{Name: assetsList, Kind: AssetMissing}), nil
 	}
 	if !bytes.Equal(current.list, createAssetList(files)) {
-		return append(changes, assetsList+": differs"), nil
+		return append(changes, AssetChange{Name: assetsList, Kind: AssetDiffers}), nil
 	}
 	return changes, nil
 }
@@ -155,6 +193,19 @@ func (d assetDir) foreignNames() []string {
 	}
 	slices.Sort(foreign)
 	return foreign
+}
+
+func (d assetDir) mergeListed(files map[string]Asset) map[string]Asset {
+	merged := make(map[string]Asset, len(files)+len(d.listed))
+	for name, listed := range d.listed {
+		if _, onDisk := d.present[name]; onDisk {
+			merged[name] = listed
+		}
+	}
+	for name, asset := range files {
+		merged[name] = asset
+	}
+	return merged
 }
 
 func readAssetDir(dir string) (assetDir, error) {
@@ -199,7 +250,8 @@ func readVisibleFiles(dir string) (map[string][]byte, error) {
 		if walkErr != nil {
 			return fmt.Errorf("walk %s failed: %w", name, walkErr)
 		}
-		if name != "." && strings.HasPrefix(entry.Name(), ".") {
+		nestedList := entry.Name() == assetsList && name != assetsList
+		if name != "." && strings.HasPrefix(entry.Name(), ".") && !nestedList {
 			if entry.IsDir() {
 				return fs.SkipDir
 			}
@@ -224,6 +276,9 @@ func readVisibleFiles(dir string) (map[string][]byte, error) {
 func createHeaderListing(present map[string][]byte) map[string]Asset {
 	listed := make(map[string]Asset)
 	for name, content := range present {
+		if strings.Contains(name, "/") {
+			continue
+		}
 		module, version, ok := parseAssetHeader(content)
 		if !ok {
 			continue

@@ -29,11 +29,25 @@ func main() {
 			fmt.Fprintf(os.Stderr, "hui assets: %v\n", err)
 			os.Exit(1)
 		}
+		var (
+			foreign  int
+			outdated int
+		)
 		for _, change := range changes {
 			fmt.Fprintf(os.Stderr, "hui assets: %s/%s\n", *dir, change)
+			if change.Kind == hui.AssetForeign {
+				foreign++
+				continue
+			}
+			outdated++
+		}
+		if foreign > 0 {
+			fmt.Fprintf(os.Stderr, "hui assets: move or delete the foreign files, go generate refuses to write into %s while they are there\n", *dir)
+		}
+		if outdated > 0 {
+			fmt.Fprintf(os.Stderr, "hui assets: %s is out of date, run go generate\n", *dir)
 		}
 		if len(changes) > 0 {
-			fmt.Fprintf(os.Stderr, "hui assets: %s is out of date, run go generate\n", *dir)
 			os.Exit(1)
 		}
 		return

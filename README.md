@@ -2489,7 +2489,12 @@ not, fits.
   (your own file, or the wrong `-dir` pointing at your sources) is an error that names the
   file; nothing is written or deleted. A directory without `.hui-assets` is written only
   when it is empty or does not exist. A directory from v0.1.2 holding only files with a
-  hui header is taken over and gets the list.
+  hui header directly in it (no subdirectories) is taken over and gets the list. A
+  subdirectory with its own `.hui-assets` (pointing `-dir` at the parent of a generated
+  directory) is foreign as well.
+- **An interrupted run can be repeated.** Before it touches any file the command lists both
+  the files it is about to write and the ones it is about to delete, so after a failure the
+  next run finishes the job instead of finding foreign files.
 - **Hidden files are ignored.** Anything whose name starts with a dot (`.DS_Store`,
   `.gitkeep`, a hidden directory), except `.hui-assets` itself, is never read, reported or
   deleted.
@@ -2502,7 +2507,9 @@ not, fits.
 - `go tool hui assets -check` writes nothing and lists every file that is `missing`,
   `differs` (with the version on the list it came from), is `stale` (listed, but the
   current version no longer has it) or `foreign`, and whether `.hui-assets` itself is
-  missing or differs. It exits with 1 when it lists anything.
+  missing or differs. It exits with 1 when it lists anything. For a foreign file it tells
+  you to move or delete it, because `go generate` refuses to write until it is gone; for
+  everything else to run `go generate`.
 - Upgrading is `go get github.com/daarxwalker/hui@v0.3.0` and `go generate ./...`; the
   change to the JavaScript shows up in your diff.
 
@@ -2515,7 +2522,9 @@ so the list carries several modules:
   module is compiled at. Text files start their content with `hui.AssetHeader(module)`;
   binary files (fonts) go in as they are.
 - `hui.WriteAssets(dir, files)` writes them and the list, `hui.CheckAssets(dir, files)`
-  returns the `-check` report. Names are relative slash paths without spaces or hidden
+  returns the `-check` report as `[]hui.AssetChange` (`Name`, `Kind`, and the `Module` and
+  `Version` on the list); `Kind` is `hui.AssetMissing`, `AssetDiffers`, `AssetStale` or
+  `AssetForeign`, and `String()` gives the line `-check` prints. Names are relative slash paths without spaces or hidden
   parts, subdirectories included (`fonts/plex.woff2`). A foreign file makes `WriteAssets`
   fail with `hui.ErrForeignAssets`.
 

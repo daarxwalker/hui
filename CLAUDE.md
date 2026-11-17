@@ -173,8 +173,12 @@ aby jedna sada tříd stylovaného tlačítka šla dát na kterékoli z nich.
 - **O vlastnictví rozhoduje jen seznam `.hui-assets`** (řádek `cesta modul verze`, seřazený),
   nikdy hlavička v obsahu: pdui do složky píše i binární písma. Maže se jen to, co je na
   seznamu a v nové sadě chybí. Neskrytý soubor mimo seznam je cizí: `WriteAssets` skončí
-  `ErrForeignAssets` a nic nezapíše ani nesmaže, `-check` ho ohlásí. Složka bez seznamu se
-  zapíše jen prázdná, nebo když v ní jsou jen soubory s hlavičkou (přechod z v0.1.2).
+  `ErrForeignAssets` a nic nezapíše ani nesmaže, `-check` ho ohlásí (`AssetForeign`) a CLI
+  radí soubor přesunout nebo smazat, ne `go generate`. Složka bez seznamu se zapíše jen
+  prázdná, nebo když v ní jsou přímo (ne v podsložkách) jen soubory s hlavičkou (přechod
+  z v0.1.2). Vnořený `.hui-assets` je cizí, jinak by `-dir` na rodiče vygenerovanou složku
+  tiše přesunul. Před prvním zápisem se uloží seznam jako sjednocení starých souborů na disku
+  a nové sady, aby po přerušeném běhu nic nezůstalo cizí; konečný seznam se zapíše na konci.
   Skryté soubory a složky (`.DS_Store`, `.gitkeep`) kromě `.hui-assets` se nečtou, nehlásí
   ani nemažou. Žádný konfigurační soubor, cesta je jen v direktivě.
 - V metodách pluginu sahej na kořen komponenty přes `this.$root`, ne `this.$el` — když se

@@ -100,7 +100,7 @@ func TestAssets(t *testing.T) {
 		err := WriteAssets(dir, Assets())
 
 		require.ErrorIs(t, err, ErrForeignAssets)
-		assert.Contains(t, err.Error(), "generate.go, index.ts")
+		assert.Contains(t, err.Error(), "generate.go, hui/hui.js, index.ts")
 		assert.Equal(t, sources, testReadTree(t, dir))
 	})
 
@@ -118,7 +118,58 @@ func TestAssets(t *testing.T) {
 		assert.Equal(t, before, testReadTree(t, dir))
 		changes, checkErr := CheckAssets(dir, Assets())
 		require.NoError(t, checkErr)
-		assert.Equal(t, []string{"app.js: foreign, not in .hui-assets"}, changes)
+		assert.Equal(t, []AssetChange{{Name: "app.js", Kind: AssetForeign}}, changes)
+		assert.Equal(t, "app.js: foreign, not in .hui-assets", changes[0].String())
+	})
+
+	t.Run("the parent of a generated directory is refused", func(t *testing.T) {
+		parent := t.TempDir()
+		require.NoError(t, WriteAssets(filepath.Join(parent, "hui"), Assets()))
+		before := testReadTree(t, parent)
+
+		err := WriteAssets(parent, Assets())
+
+		require.ErrorIs(t, err, ErrForeignAssets)
+		assert.Equal(t, before, testReadTree(t, parent))
+		changes, checkErr := CheckAssets(parent, Assets())
+		require.NoError(t, checkErr)
+		assert.Equal(t, []AssetChange{
+			{Name: "hui.d.ts", Kind: AssetMissing},
+			{Name: "hui.js", Kind: AssetMissing},
+			{Name: "hui/.hui-assets", Kind: AssetForeign},
+			{Name: "hui/hui.d.ts", Kind: AssetForeign},
+			{Name: "hui/hui.js", Kind: AssetForeign},
+			{Name: assetsList, Kind: AssetMissing},
+		}, changes)
+	})
+
+	t.Run("an interrupted run leaves nothing foreign", func(t *testing.T) {
+		dir := t.TempDir()
+		previous := Assets()
+		previous["sub/old.js"] = Asset{Module: assetsModule, Version: "v0.1.2", Content: []byte(gofakeit.Sentence())}
+		require.NoError(t, WriteAssets(dir, previous))
+		next := Assets()
+		next["new.js"] = CreateAsset(assetsModule, []byte(gofakeit.Sentence()))
+		next["sub/new.js"] = CreateAsset(assetsModule, []byte(gofakeit.Sentence()))
+		require.NoError(t, os.Chmod(filepath.Join(dir, "sub"), 0o555))
+
+		require.Error(t, WriteAssets(dir, next))
+
+		require.NoError(t, os.Chmod(filepath.Join(dir, "sub"), 0o755))
+		list := testReadTree(t, dir)[assetsList]
+		for _, name := range []string{"hui.js", "hui.d.ts", "new.js", "sub/new.js", "sub/old.js"} {
+			assert.Contains(t, list, "\n"+name+" ", name)
+		}
+		changes, err := CheckAssets(dir, next)
+		require.NoError(t, err)
+		for _, change := range changes {
+			assert.NotEqual(t, AssetForeign, change.Kind, change.String())
+		}
+		require.NoError(t, WriteAssets(dir, next))
+		assert.NoFileExists(t, filepath.Join(dir, "sub", "old.js"))
+		changes, err = CheckAssets(dir, next)
+		require.NoError(t, err)
+		assert.Empty(t, changes)
 	})
 
 	t.Run("hidden files are left alone", func(t *testing.T) {
@@ -182,10 +233,10 @@ func TestAssets(t *testing.T) {
 
 		changes, err := CheckAssets(dir, Assets())
 		require.NoError(t, err)
-		assert.Equal(t, []string{
-			"hui.d.ts: missing",
-			"hui.js: differs, on disk from github.com/daarxwalker/hui v0.1.2",
-			".hui-assets: missing",
+		assert.Equal(t, []AssetChange{
+			{Name: "hui.d.ts", Kind: AssetMissing},
+			{Name: "hui.js", Kind: AssetDiffers, Module: assetsModule, Version: "v0.1.2"},
+			{Name: assetsList, Kind: AssetMissing},
 		}, changes)
 
 		require.NoError(t, WriteAssets(dir, Assets()))
@@ -213,19 +264,27 @@ func TestAssets(t *testing.T) {
 		changes, err := CheckAssets(dir, Assets())
 
 		require.NoError(t, err)
+		var report []string
+		for _, change := range changes {
+			report = append(report, change.String())
+		}
 		assert.Equal(t, []string{
 			"hui.d.ts: missing",
 			"hui.js: differs, on disk from github.com/daarxwalker/hui v0.1.2",
 			"old.js: stale, from github.com/daarxwalker/hui v0.1.2",
 			".hui-assets: differs",
-		}, changes)
+		}, report)
 	})
 
 	t.Run("check reports a missing directory", func(t *testing.T) {
 		changes, err := CheckAssets(filepath.Join(t.TempDir(), "hui"), Assets())
 
 		require.NoError(t, err)
-		assert.Equal(t, []string{"hui.d.ts: missing", "hui.js: missing", ".hui-assets: missing"}, changes)
+		assert.Equal(t, []AssetChange{
+			{Name: "hui.d.ts", Kind: AssetMissing},
+			{Name: "hui.js", Kind: AssetMissing},
+			{Name: assetsList, Kind: AssetMissing},
+		}, changes)
 	})
 
 	t.Run("rejects names it could not list or would hide", func(t *testing.T) {

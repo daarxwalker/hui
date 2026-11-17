@@ -4,19 +4,11 @@ Write the changes of the next release under `## [Unreleased]`. `task release VER
 puts them into the git tag and the GitHub release, then empties the section again.
 
 ## [Unreleased]
-
-- Fixed: a wrong `-dir` (for example the folder with the app's sources) made
-  `go tool hui assets` delete every file that was not in the new set. The command now owns
-  only the files listed in `.hui-assets` (path, module, version per line) and stops with an
-  error naming any other file, without writing or deleting anything. A directory without
-  the list is written only when it is empty; a directory from v0.1.2 that holds just the
-  generated `hui.js` is taken over and gets the list. Commit `.hui-assets` with the rest.
-- Fixed: hidden files such as `.DS_Store` or `.gitkeep` made `-check` fail and were deleted.
-  Files and directories starting with a dot are now ignored.
-- `go tool hui assets` also writes `hui.d.ts`, so `import hui from './hui/hui.js'` compiles in
-  TypeScript with `strict` without `@types/alpinejs`.
-- `-check` reports each file as `missing`, `differs` (with the version it came from),
-  `stale` or `foreign`, plus a missing or outdated `.hui-assets`.
-- Breaking for libraries on top of hui: `Assets()` returns `map[string]hui.Asset` (`Module`,
-  `Version`, `Content`) and `WriteAssets`/`CheckAssets` take that map. `hui.CreateAsset(module,
-  content)` builds an asset of another module, binary files included.
+- Fixed: `-dir` pointing at the parent of a generated directory moved it there silently.
+  Taking over a directory from v0.1.2 now looks only at the files directly in it, and a
+  subdirectory with its own `.hui-assets` counts as foreign.
+- `-check` tells you to move or delete a foreign file instead of running `go generate`,
+  which would refuse to write. `CheckAssets` returns `[]hui.AssetChange` (`Name`, `Kind`,
+  `Module`, `Version`, `String()`) instead of strings.
+- An interrupted run no longer leaves its files foreign: `.hui-assets` lists everything the
+  run is about to write or delete before it touches a file, and the next run finishes it.
