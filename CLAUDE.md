@@ -29,33 +29,36 @@ důvodu — Go ho embeduje, takže knihovna jde použít bez Node.
 task release VERSION=v0.2.0
 task release:check VERSION=v0.2.0
 task release:github VERSION=v0.2.0
-task release:npm VERSION=v0.2.0
+task assets
 ```
 
 `task release` nic necommituje, commity řeší uživatel ručně předem, včetně poznámek pod
 `## [Unreleased]` v [CHANGELOG.md](CHANGELOG.md). Nejdřív `release:check` ověří, že `VERSION`
-je zadaná ve tvaru `vX.Y.Z`, je vyšší než poslední git tag i verze na npm, pod
-`## [Unreleased]` něco je, větev je `main` bez necommitnutých změn a ve shodě s `origin/main`
-a uživatel je přihlášený do `gh` i npm. Potom přegeneruje templ i `alpine/dist` (strom musí
-zůstat čistý) a pustí gofmt, vet a testy. Teprve pak `release:git` vytvoří a pushne tag
-a vyprázdní `## [Unreleased]`, `release:github` založí GitHub release a `release:npm` publikuje
-balíček. Poznámky jdou do anotace tagu i do GitHub releasu, historie verzí žije tam, ne
-v CHANGELOGu. Vyprázdněný CHANGELOG zůstane necommitnutý, commitne ho uživatel.
+je zadaná ve tvaru `vX.Y.Z`, je vyšší než poslední git tag, pod `## [Unreleased]` něco je,
+větev je `main` bez necommitnutých změn a ve shodě s `origin/main` a uživatel je přihlášený
+do `gh`. Potom přegeneruje templ i `alpine/dist` (strom musí zůstat čistý), pustí gofmt, vet,
+testy a `task assets` (`go run ./cmd/hui assets` do prázdné složky, druhý běh s `-check` nesmí
+nic najít a `hui.js` bez hlavičky musí být bajt po bajtu `alpine/dist/module.esm.js`). Teprve
+pak `release:git` vytvoří a pushne tag a vyprázdní `## [Unreleased]` a `release:github` založí
+GitHub release. Poznámky jdou do anotace tagu i do GitHub releasu, historie verzí žije tam,
+ne v CHANGELOGu. Vyprázdněný CHANGELOG zůstane necommitnutý, commitne ho uživatel.
 
-`release:github` a `release:npm` jdou pustit samostatně, když jejich krok selže (tag už existuje,
-takže celý `task release` znovu neprojde). Oba berou všechno z tagu, ne z pracovního stromu:
-poznámky přes `git show <tag>:CHANGELOG.md` (v tagu ještě nevyprázdněné), npm balíček přes
-`git archive <tag> alpine`. Verze
-na npm je proto vždy ta z tagu a jde na ni přesně ten `dist`, který embeduje Go. Verze se
-nastaví jen v dočasné kopii, `version` v `alpine/package.json` se při releasu nemění.
+`release:github` jde pustit samostatně, když jeho krok selže (tag už existuje, takže celý
+`task release` znovu neprojde). Poznámky bere z tagu přes `git show <tag>:CHANGELOG.md`
+(v tagu ještě nevyprázdněné), ne z pracovního stromu.
+
+npm balíček neexistuje. JS se k aplikacím dostane jen přes Go modul (`go tool hui assets`,
+`Scripts()`, `<X>Script()`), takže jediná verze je ta v `go.mod` aplikace.
 
 Shell, ve kterém Task spouští příkazy (mvdan/sh), nevyhodnotí správně `!` před pipeline,
 proto podmínky v Taskfile používají `[ -z "$(…)" ]` nebo `if …; then …; fi`.
 
 ## Pravidla, která se neporušují
 
-- **Jeden plochý Go balíček.** Žádný druhý modul, žádný `go.work`. Podsložky jsou jen dvě:
-  [alpine/](alpine) — npm balíček s Alpine pluginy, žádné `.go` soubory — a
+- **Jeden plochý Go balíček.** Žádný druhý modul, žádný `go.work`. Podsložky jsou jen tři:
+  [alpine/](alpine) — zdroj a build Alpine pluginů (soukromý `package.json` jen kvůli
+  esbuildu), žádné `.go` soubory —, [cmd/hui](cmd/hui) — `package main` pro
+  `go tool hui assets`, jen čtení přepínačů a výpis, logika zápisu je v `assets.go` — a
   [example/](example) — `package main` se stránkou se všemi komponentami
   (`make example` = build Alpine, `templ generate`, `go run ./example`), který knihovnu
   importuje jako kdokoli jiný. Žádná knihovní logika v něm není. Zatím je v `.gitignore`
@@ -63,7 +66,8 @@ proto podmínky v Taskfile používají `[ -z "$(…)" ]` nebo `if …; then …
 - **Dvojice souborů na komponentu:** `komponenta.go` (props a atributy) + `komponenta.templ`
   (tenký markup). Sdílené vnitřnosti bez vlastní komponenty mají vlastní soubor: `base.go`,
   `anchor.go` (pozicování), `options.go` (Listbox a Combobox), `portals.go` (teleport, overlaye
-  a výchozí přechody), `pending.go` (skript pro stav běžícího requestu), `checkable.go` (Checkbox, Switch a Radio jako button). Když komponenta potřebuje vlastní JS, přibude plugin
+  a výchozí přechody), `pending.go` (skript pro stav běžícího requestu), `checkable.go` (Checkbox, Switch a Radio jako button),
+  `assets.go` (soubory pro `go tool hui assets`, `WriteAssets`/`CheckAssets` volá i pdui). Když komponenta potřebuje vlastní JS, přibude plugin
   `alpine/src/komponenta.js` a Go si jeho build vloží přes `//go:embed`.
 - **Žádné komentáře v kódu.** Ani doc komentáře, ani v testech. Čitelnost nese pojmenování,
   vysvětlení patří do [README.md](README.md).
@@ -144,18 +148,26 @@ aby jedna sada tříd stylovaného tlačítka šla dát na kterékoli z nich.
   jen zobrazí stav.
 - `TextInput` má Alpine **volitelný, výchozí vypnutý** (`Alpine: true`). S Tailwindem
   to pokryje `focus-visible:` a `placeholder-shown:`.
-- Veškerý JS žije v [alpine/](alpine) jako Alpine pluginy — budoucí veřejný npm balíček
-  `@daar/hui-alpine`. Alpine je v něm `peerDependency`, ne závislost.
+- Veškerý JS žije v [alpine/](alpine) jako Alpine pluginy. Nepublikuje se na npm, aplikace
+  ho dostanou z Go modulu. Alpine ani htmx se do buildu nepřibalují, načítá je aplikace.
 - Plugin komponenty je `alpine/src/komponenta.js` s `export default function (Alpine)`,
   který registruje přes `Alpine.data(...)`. Přidej ho do `src/index.js` (export i celkový
   plugin) a vytvoř `alpine/builds/komponenta.js`, který ho předá `register`.
-- Build dělá tři věci: `dist/module.esm.js` pro `import` a `Alpine.plugin(...)`,
-  `dist/cdn.min.js` pro `<script>` se vším a `dist/komponenta.min.js` pro Go.
+- Build dělá tři věci: `dist/module.esm.js` pro `go tool hui assets` (zapíše ho jako
+  `hui.js` s hlavičkou verze), `dist/cdn.min.js` pro `Scripts()` a
+  `dist/komponenta.min.js` pro `<Komponenta>Script()`.
 - **Žádná komponenta nerenderuje `<script>`, nic se nespouští samo.** Konzument načte
-  pluginy jednou sám: `Scripts()` (celý `dist/cdn.min.js`, [scripts.go](scripts.go)),
-  jednotlivé `<Komponenta>Script()` (`//go:embed alpine/dist/komponenta.min.js`
-  + `templ.NewOnceHandle`, jednou na stránku), nebo npm balíček. `register` se umí
-  zaregistrovat i když skript dorazí až po startu Alpine.
+  pluginy jednou sám: `go tool hui assets` do zdrojů svého bundleru (doporučená cesta,
+  [assets.go](assets.go), [cmd/hui](cmd/hui)), `Scripts()` (celý `dist/cdn.min.js` inline,
+  [scripts.go](scripts.go)), nebo jednotlivé `<Komponenta>Script()`
+  (`//go:embed alpine/dist/komponenta.min.js` + `templ.NewOnceHandle`, jednou na stránku).
+  `register` se umí zaregistrovat i když skript dorazí až po startu Alpine.
+- **`go tool hui assets`** zapíše soubory z `Assets()` do `-dir` (výchozí `hui/` vedle
+  direktivy `go:generate`). Verze v hlavičce je z `debug.ReadBuildInfo()` (`replace` na
+  místní složku dá `(devel)`). Výstup je deterministický a nemění nezměněné soubory. Složka
+  patří příkazu: smaže soubory, které nová sada nemá, a odmítne (`ErrForeignAssets`) zapsat
+  do neprázdné složky, kde žádný soubor nemá hlavičku. Žádný konfigurační soubor, cesta je
+  jen v direktivě.
 - V metodách pluginu sahej na kořen komponenty přes `this.$root`, ne `this.$el` — když se
   metoda zavolá z potomka (`<button @click="hide()">`), `$el` je ten potomek.
 - **Každé pole instance deklaruj v datech předem** (`layer: null`, `cleanup: null`, …).
@@ -184,7 +196,7 @@ aby jedna sada tříd stylovaného tlačítka šla dát na kterékoli z nich.
   `x-transition.opacity`, obsah Collapsible `x-collapse`) přes
   `transition(own, attrs, directive)` v `portals.go`. Jakýkoli `x-transition…`/`x-collapse…`
   klíč v `Attrs` výchozí nahradí, `false` ho vypne. `@alpinejs/collapse` je jediná přibalená
-  závislost npm balíčku (Alpine zůstává peer), pluginy ho registrují jednou.
+  závislost buildu (Alpine se nepřibaluje), pluginy ho registrují jednou.
 
 ## htmx
 
@@ -255,8 +267,9 @@ Neotáčej je bez domluvy — každé má důvod:
 |---|---|
 | Žádné nativní overlaye (`<dialog>`, `popover`), všechno přes `x-teleport` do jednoho `Portals` (`#hui-portals`) | jeden mechanismus pro všechny overlaye: sdílený zásobník vrstev, `x-transition`, ovládání stavu odkudkoli. Pozice dál čistě CSS anchor positioningem (`Placement`, `anchor.go`), bez Floating UI |
 | `Modal` je div s `role="dialog"` řízený Alpinem, ne nativní `<dialog>` | stav musí jít ovládat odkudkoli (`x-model` přes `x-modelable`, události, `open`) a `x-show` s `x-transition`; `open` je jediný zdroj pravdy a focus trap, `inert` okolí, Escape, klik mimo, zámek scrollu i vracení fokusu z něj odvozuje plugin. Otevřené modaly tvoří zásobník, reaguje jen ten nejvyšší |
-| JS je npm balíček v `alpine/`, Go embeduje jeho `dist` | jeden zdroj pro bundlery, CDN i templ; konzument bez Node dál nic neinstaluje |
-| Skripty jsou volitelné, komponenty žádný `<script>` nevkládají | všechno je v Alpine, které si konzument načítá sám (`Scripts()`, `<X>Script()`, npm); partialy a markup tak nikdy nespouští kód samy od sebe |
+| JS žije v `alpine/`, Go embeduje jeho `dist` a bundlery ho dostanou přes `go tool hui assets`, žádný npm balíček | jediná verze je v `go.mod` aplikace, markup a JS se nemohou rozejít; aplikace soubor commitne a importuje jako místní zdroj, jeden build s hashem, změnu JS vidí v diffu a kvůli hui nepotřebuje Node |
+| `go tool hui assets` bez konfiguračního souboru, cesta jen v direktivě `go:generate` (`-dir`) | dvě místa s cestou by se rozešla stejně jako dřív `go.mod` a `package.json`; CI stačí `go generate ./... && git diff --exit-code` |
+| Skripty jsou volitelné, komponenty žádný `<script>` nevkládají | všechno je v Alpine, které si konzument načítá sám (`go tool hui assets`, `Scripts()`, `<X>Script()`); partialy a markup tak nikdy nespouští kód samy od sebe |
 | `Checkbox`, `Switch` i `Radio` jsou `<button>` s rolí a skrytým inputem, ne nativní input | vlastní ikona (`CheckboxIndicator`, `SwitchThumb`, `RadioIndicator`) a jednotné stylování přes `data-checked:`; cena: bez JS se nedají přepnout. Radio skupina (podle `name` a formuláře) má roving tabindex a šipky |
 | Overlay a obsah `Modalu` (a obsah ostatních overlayů) se teleportují do povinného `Portals` v `<body>`, obsah uvnitř overlaye cestuje s ním | žádný předek s `transform`, `filter` nebo `overflow` je neuvězní. Cena: bez JS se obsah nevyrenderuje, `<form>` musí být uvnitř `ModalContent`, htmx se v obsahu zpracuje až při otevření (`htmx.process`) a `z-index` si určuje konzument |
 | `Modal` je rozložený na části jako bits-ui Dialog (`Portals`, `Trigger`, `Overlay`, `Content`, `Title`, `Description`, `Close`) | bez `::backdrop` potřebuje overlay vlastní element; `Title`/`Description` dávají `aria-labelledby`/`aria-describedby` z Go zadarmo |
@@ -279,7 +292,7 @@ Neotáčej je bez domluvy — každé má důvod:
 | `tests.go` **bez** sufixu `_test` | vědomé rozhodnutí uživatele; důsledek je, že testify a gofakeit jsou běžné závislosti v `go.mod` — neopravuj to přejmenováním |
 | Žádné E2E testy | byly napsané (server + chromedp) a smazané jako zbytečná nadstavba nad malou knihovnu |
 | README je primárně návod pro agenta | agent podle něj staví stylovanou UI knihovnu a showcase appku pro konkrétní projekt; sekce *Building a project UI library*, *Building a showcase app* a *Styling reference* musí odpovídat API a vzoru v `example/` |
-| Licence MIT, Go modul i npm balíček | `alpine/LICENSE` je kopie kořenové, npm ji přibalí i přes `files: ["dist"]` |
+| Licence MIT | jedna `LICENSE` v kořeni, `alpine/` se nikam samostatně nepublikuje |
 | `example/` jako jednoduchý `package main` | aby šly komponenty ručně vyzkoušet v prohlížeči (`go run ./example`); jen ukázková stránka a pár endpointů pro htmx, žádné testy ani tooling |
 
 ## Co nedělat

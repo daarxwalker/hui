@@ -1,41 +1,25 @@
-# @daar/hui-alpine
+# hui Alpine plugins
 
-The [Alpine.js](https://alpinejs.dev) plugins behind
-[hui](https://github.com/daarxwalker/hui), a headless component library for
-[templ](https://templ.guide). The Go components already embed these files. This package is
-for when you bundle your own JavaScript or load Alpine from a CDN.
+The [Alpine.js](https://alpinejs.dev) plugins behind the hui components. This directory is
+only their source and build. It is not published anywhere: the Go module embeds `dist`,
+and apps get the code through Go, either inline with `hui.Scripts()` or as a file in their
+own sources with `go tool hui assets` (see
+[Alpine](https://github.com/daarxwalker/hui#alpine) in the main README).
 
-## Install
+## Build
 
 ```bash
-npm install alpinejs @daar/hui-alpine
+npm install
+npm run build
 ```
 
-```js
-import Alpine from 'alpinejs'
-import hui from '@daar/hui-alpine'
+| File | For |
+|---|---|
+| `dist/module.esm.js` | `go tool hui assets`, which writes it as `hui.js` with a version header |
+| `dist/cdn.min.js` | `hui.Scripts()`, every plugin in one self-registering script |
+| `dist/<component>.min.js` | `hui.<Component>Script()`, a single self-registering plugin |
 
-Alpine.plugin(hui)
-Alpine.start()
-```
-
-Each component is also exported on its own:
-
-```js
-import { modal } from '@daar/hui-alpine'
-
-Alpine.plugin(modal)
-```
-
-## CDN
-
-Load the plugin before Alpine. It registers itself on `alpine:init`, and if Alpine has
-already started (for example after an htmx swap), it registers straight away.
-
-```html
-<script defer src="https://cdn.jsdelivr.net/npm/@daar/hui-alpine@0.1.0/dist/cdn.min.js"></script>
-<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3/dist/cdn.min.js"></script>
-```
+`dist` is committed, because Go embeds it. Rebuild it after every change in `src`.
 
 ## Components
 
@@ -61,17 +45,5 @@ copy of that code, and the first one to load keeps the stack on the `Alpine` obj
 loading several of them still gives one stack.
 
 `collapsible` bundles [`@alpinejs/collapse`](https://alpinejs.dev/plugins/collapse) and
-registers it once, because its content uses `x-collapse` by default.
-
-## Build
-
-```bash
-npm install
-npm run build
-```
-
-| File | For |
-|---|---|
-| `dist/module.esm.js` | `import` from a bundler |
-| `dist/cdn.min.js` | a `<script>` tag with every plugin |
-| `dist/<component>.min.js` | a single self-registering plugin, embedded by the Go components |
+registers it once, because its content uses `x-collapse` by default. Alpine itself is never
+bundled; the app loads it.
